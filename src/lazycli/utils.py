@@ -11,11 +11,16 @@ def validate_title(title):
     if not title or not title.strip():
         return False
 
-    if re.search(r'[^\w\s\-]', title):
+    if re.search(r'[^A-Za-z0-9 -_]', title):
         return False
 
     return True
 
+def clean_title(title):
+    title = title.strip()
+    title = title.strip('-')
+    title = title.strip('_')
+    return title
 
 def validate_tags(tags):
     """
@@ -51,7 +56,8 @@ def slugify(title):
     """
     slug = re.sub(r'\s', '-', title)
     slug = re.sub(r'-+', '-', slug)
-    return slug.lower().strip('-')
+    slug = re.sub(r'_+', '-', slug)
+    return slug.lower().strip('-').strip('_')
 
 
 def get_db_path(app_name="LazyNotes"):

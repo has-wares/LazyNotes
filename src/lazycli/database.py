@@ -82,6 +82,14 @@ class NoteStore:
                          WHERE slug = ?
                          """, (new_tags, now, slug))
 
+    def rename_note(self, slug, new_name, new_slug):
+        now = datetime.now().isoformat(timespec='seconds')
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute("""
+                        UPDATE notes
+                        SET title = ?, slug = ?, updated_at = ?
+                        WHERE slug = ?
+                        """, (new_name, new_slug, now, slug))
 
     def search(self, query):
         """

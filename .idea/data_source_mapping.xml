@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
-    <file url="file://$PROJECT_DIR$/.idea/queries/Query.sql" value="08a7ce50-bd96-4149-b224-ccb8961d25d5" />
+    <file url="file://$PROJECT_DIR$/src/lazycli/database.py" value="08a7ce50-bd96-4149-b224-ccb8961d25d5" />
   </component>
 </project>

@@ -1,7 +1,12 @@
 import sqlite3
 import click
 from .database import NoteStore
-from .utils import validate_title, slugify, get_db_path, validate_tags
+from .utils import validate_title, slugify, get_db_path, validate_tags, clean_title
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.padding import Padding
+
+console = Console()
 
 @click.group()
 @click.pass_context
@@ -47,7 +52,7 @@ def create(ctx, title, tags, edit):
         click.secho("Please use only letters, numbers, and spaces", fg="yellow")
         return
 
-    title = title.strip()
+    title = clean_title(title)
     slug = slugify(title)
 
     if tags:
@@ -144,12 +149,45 @@ def retag(ctx, name, tags):
     store = ctx.obj
     slug = slugify(name)
 
+    if not validate_tags(tags):
+        click.secho(f"ERROR INVALID TAGS", fg='red', bold=True)
+        click.secho(f"REJECTED {tags}", fg="red")
+        click.secho("Please use only letters, numbers, and spaces", fg="yellow")
+        click.secho("No more than 2 tags allowed!", fg='yellow')
+        return
+
     if store.get_content(slug) is None:
         click.secho(f"ERROR note {slug} not found", fg='red')
         return
 
     store.update_tags(slug, tags)
     click.secho(f"Tags for {name} updated!", fg='green')
+
+
+@cli.command(name="rename")
+@click.argument("name")
+@click.argument("new_name")
+@click.pass_context
+def rename_note(ctx, name, new_name):
+    store = ctx.obj
+    slug = slugify(name)
+
+    if not validate_title(new_name):
+        click.secho("ERROR: INVALID TITLE!", fg="red", bold=True)
+        click.secho(f"REJECTED {new_name}", fg="red")
+        click.secho("Please use only letters, numbers, and spaces", fg="yellow")
+        return
+
+    new_name = clean_title(new_name)
+    new_slug = slugify(new_name)
+
+    if store.get_content(slug) is None:
+        click.secho(f"ERROR note {slug} not found", fg='red')
+        return
+
+    store.rename_note(slug, new_name, new_slug)
+    click.secho(f"Title for {name} changed to {new_name}", fg='green')
+
 
 @cli.command(name="show")
 @click.argument("name")
@@ -163,6 +201,6 @@ def show_notes(ctx, name):
     if content is None:
         click.secho(f"ERROR: Note {name} not found", fg='red')
         return
-
+    md = Markdown(content)
     click.secho(f"----- {slug} -----", fg='cyan', bold=True)
-    click.secho(content)
+    console.print(Padding(md, (1,2,1,2)))
