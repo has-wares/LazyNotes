@@ -5,6 +5,7 @@ from .utils import validate_title, slugify, get_db_path, validate_tags, clean_ti
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.padding import Padding
+from rich.table import Table
 
 console = Console()
 
@@ -103,19 +104,19 @@ def list_notes(ctx, tag):
         click.secho("Your note store is empty", fg='yellow')
         return
 
-    click.secho(f"-----Showing {len(notes)} notes-----", fg='cyan', bold=True)
+    table = Table(show_header=True)
 
-    for title, slug, tags, updated in notes:
-        tag_str = tags.replace(" ", "") if tags else '-'
-        date_str = updated.split('T')[0] if updated else 'N/A'
+    table.add_column("Title", style="white", no_wrap=False)
+    table.add_column("Slug", style="green")
+    table.add_column("Tags", style="white")
+    table.add_column("Last Updated", style="magenta")
 
-        click.echo(
-            click.style(f"Title: {title[:20].ljust(22)}", fg='white', bold=True) +
-            click.style(f"Slug: {slug[:15].ljust(17)}", fg='green', bold=True) +
-            click.style(f"Tags: {tag_str[:20].ljust(20)}", fg='cyan', bold=True) +
-            click.style(f"Date: {date_str}", fg='cyan', bold=True)
-        )
+    for title, slug, tags, updated_at in notes:
+        tag_str = tags if tags else ""
+        date_str = updated_at.split('T')[0] if updated_at else 'N/A'
+        table.add_row(title.title(), slug, tag_str, date_str)
 
+    console.print(table)
 
 @cli.command(name='rm')
 @click.argument("name")
@@ -185,8 +186,12 @@ def rename_note(ctx, name, new_name):
         click.secho(f"ERROR note {slug} not found", fg='red')
         return
 
-    store.rename_note(slug, new_name, new_slug)
-    click.secho(f"Title for {name} changed to {new_name}", fg='green')
+    try:
+        store.rename_note(slug, new_name, new_slug)
+        click.secho(f"Title for {name} changed to {new_name}", fg='green')
+    except sqlite3.IntegrityError:
+        click.secho(f"ERROR: A note with slug '{slug}' already exists!", fg="red")
+        click.secho("Please provide a unique title", fg='yellow')
 
 
 @cli.command(name="show")

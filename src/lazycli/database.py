@@ -83,6 +83,9 @@ class NoteStore:
                          """, (new_tags, now, slug))
 
     def rename_note(self, slug, new_name, new_slug):
+        """
+        Updates title of a specific note
+        """
         now = datetime.now().isoformat(timespec='seconds')
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
