@@ -8,10 +8,11 @@ def validate_title(title):
     :param title: str: user given title
     :return: True if title is valid else false
     """
+    forbidden = r'[\/:*?"<>|]'
     if not title or not title.strip():
         return False
 
-    if re.search(r'[^A-Za-z0-9 -_]', title):
+    if re.search(forbidden, title):
         return False
 
     return True
@@ -38,7 +39,7 @@ def validate_tags(tags):
 
     taglist = tags.split(',')
 
-    if len(taglist) > 2:
+    if len(taglist) > 4:
         return False
 
     if re.search(r'[^\w\s\,]', tags):

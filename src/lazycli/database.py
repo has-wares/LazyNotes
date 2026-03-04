@@ -126,13 +126,17 @@ class NoteStore:
         """
         Returns notes with a specific tag
         """
-        search_tag = f"%{tag.lower()}%"
-        with sqlite3.connect(self.db_path) as conn:
-            cursor =  conn.execute("""
+        tags_list = [t.strip().lower() for t in tag.split(',')]
+        where_clause = ["LOWER(tags) LIKE ?" for _ in tags_list]
+        query = f"""
                 SELECT title, slug, tags, updated_at
-                FROM notes WHERE LOWER(tags) LIKE ?
+                FROM notes
+                WHERE {" AND ".join(where_clause)}
                 ORDER BY updated_at DESC
-            """, (search_tag,))
+                """
+        params = [f"%{t}%" for t in tags_list]
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute(query, params)
             return cursor.fetchall()
 
 
